@@ -12,18 +12,18 @@ var h_ = 1;
 var width = 30;
 
 //Number of blades
-var instances = 50;
+var instances = 500;
 
 //Camera rotate
-var rotate = false;
+var rotate = true;
 
 //Initialise three.js
 var scene = new THREE.Scene();
 
-var renderer = new THREE.WebGLRenderer({antialias: true, canvas: canvas});
+var renderer = new THREE.WebGLRenderer({antialias: true, canvas: canvas, alpha: true});
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setClearColor( 0x66deff, 1);
+// renderer.setClearColor( 0x66deff, 1);
 
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -78,12 +78,17 @@ dirLight.shadow.Darkness = 0.35;
 
 
 // skype dome
-// var skyGeo = new THREE.SphereGeometry(100000, 25, 25);
+// var skyGeo = new THREE.SphereGeometry(10000, 25, 25);
 // var loader  = new THREE.TextureLoader(),
-//     texture = loader.load( "materials/blade_diffuse.jpg" );
+//     texture = loader.load( "materials/sky.png" );
+// // texture.wrapS = THREE.RepeatWrapping;
+// // texture.wrapT = THREE.RepeatWrapping;
+// // texture.repeat.x = 3;
+// // texture.repeat.y = 3;
 // var material = new THREE.MeshPhongMaterial({
 //     map: texture,
 // });
+//
 // var sky = new THREE.Mesh(skyGeo, material);
 // sky.material.side = THREE.BackSide;
 // scene.add(sky);
@@ -104,12 +109,16 @@ function multiplyQuaternions(q1, q2){
 }
 
 //The ground
-var ground_geometry = new THREE.PlaneGeometry(width, width, 32, 32);
+var ground_geometry = new THREE.PlaneGeometry(100, 100, 32, 32);
 ground_geometry.lookAt(new THREE.Vector3(0,1,0));
 ground_geometry.verticesNeedUpdate = true;
 var loader = new THREE.TextureLoader();
 loader.crossOrigin = '';
 var texture = loader.load( "./materials/soil.jpg" );
+texture.wrapS = THREE.RepeatWrapping;
+texture.wrapT = THREE.RepeatWrapping;
+texture.repeat.x = 3;
+texture.repeat.y = 3;
 var ground_material = new THREE.MeshLambertMaterial({ map : texture });
 var ground = new THREE.Mesh(ground_geometry, ground_material);
 ground.receiveShadow = true;
@@ -226,7 +235,6 @@ var material = new THREE.RawShaderMaterial( {
         alphaMap: { value: alphaMap},
         time: {type: 'float', value: 0}
     },
-    // lights: true,
     vertexShader: document.getElementById( 'vertex-shader' ).textContent,
     fragmentShader: document.getElementById( 'fragment-shader' ).textContent,
     side: THREE.DoubleSide
@@ -278,6 +286,12 @@ sphere.receiveShadow = true; //default
 scene.add( sphere );
 sphere.position.set(0, 3, 0);
 
+// add sun to the scene
+var sunGeometry = new THREE.SphereBufferGeometry(  2, 32, 32);
+var sunMaterial = new THREE.MeshStandardMaterial( { color: 0xFDB813 } );
+var sun = new THREE.Mesh( sunGeometry, sunMaterial );
+scene.add( sun );
+
 
 //Show base geometry
 // scene.add(base_blade);
@@ -291,6 +305,9 @@ function draw(){
     if(rotate){
         controls.update();
     }
+    dirLight.position.x = 50 * Math.cos(time * 0.5);
+    dirLight.position.y = 50 * Math.sin(time * 0.5);
+    sun.position.set(50 * Math.cos(time * 0.5), 50 * Math.sin(time * 0.5), 50);
     requestAnimationFrame(draw);
 }
 
