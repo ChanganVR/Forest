@@ -1,5 +1,4 @@
 import {OrbitControls} from "./js/OrbitControls.js";
-import {module as noise} from "./js/perlin.js"
 
 var canvas = document.getElementById("canvas");
 
@@ -10,10 +9,10 @@ var w_ = 0.12;
 var h_ = 1;
 
 //Patch side length
-var width = 120;
+var width = 30;
 
 //Number of blades
-var instances = 5000;
+var instances = 50;
 
 //Camera rotate
 var rotate = false;
@@ -25,6 +24,9 @@ var renderer = new THREE.WebGLRenderer({antialias: true, canvas: canvas});
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize( window.innerWidth, window.innerHeight );
 renderer.setClearColor( 0x66deff, 1);
+
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 var distance = 400;
 
@@ -42,9 +44,50 @@ function onWindowResize(){
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
-//Lights
-var light_1 = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(light_1);
+// //Lights
+var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
+// hemiLight.color.setHSV( 0.6, 0.75, 0.5 );
+// hemiLight.groundColor.setHSV( 0.095, 0.5, 0.5 );
+hemiLight.position.set( 0, 500, 0 );
+scene.add( hemiLight );
+
+var dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
+dirLight.position.set( -1, 0.75, 1 );
+dirLight.position.multiplyScalar( 50);
+dirLight.name = "dirlight";
+// dirLight.shadowCameraVisible = true;
+
+scene.add( dirLight );
+
+dirLight.castShadow = true;
+dirLight.shadow.MapWidth = dirLight.shadow.MapHeight = 1024*2;
+
+var d = 300;
+
+dirLight.shadow.CameraLeft = -d;
+dirLight.shadow.CameraRight = d;
+dirLight.shadow.CameraTop = d;
+dirLight.shadow.CameraBottom = -d;
+
+dirLight.shadow.CameraFar = 3500;
+dirLight.shadow.Bias = -0.0001;
+dirLight.shadow.Darkness = 0.35;
+
+
+// skype dome
+// var skyGeo = new THREE.SphereGeometry(100000, 25, 25);
+// var loader  = new THREE.TextureLoader(),
+//     texture = loader.load( "materials/blade_diffuse.jpg" );
+// var material = new THREE.MeshPhongMaterial({
+//     map: texture,
+// });
+// var sky = new THREE.Mesh(skyGeo, material);
+// sky.material.side = THREE.BackSide;
+// scene.add(sky);
+
 
 //OrbitControls.js for camera manipulation
 var controls = new OrbitControls(camera, renderer.domElement);
@@ -60,25 +103,20 @@ function multiplyQuaternions(q1, q2){
     return new THREE.Vector4(x, y, z, w);
 }
 
-noise.seed(Math.random());
-
-function getYPosition(x, z){
-    var y = 2*noise.simplex2(x/50, z/50);
-    y += 4*noise.simplex2(x/100, z/100);
-    y += 0.2*noise.simplex2(x/10, z/10);
-    return y;
-};
-
 //The ground
 var ground_geometry = new THREE.PlaneGeometry(width, width, 32, 32);
 ground_geometry.lookAt(new THREE.Vector3(0,1,0));
 ground_geometry.verticesNeedUpdate = true;
-var ground_material = new THREE.MeshPhongMaterial({color: 0x002300});
+var loader = new THREE.TextureLoader();
+loader.crossOrigin = '';
+var texture = loader.load( "./materials/soil.jpg" );
+var ground_material = new THREE.MeshLambertMaterial({ map : texture });
 var ground = new THREE.Mesh(ground_geometry, ground_material);
+ground.receiveShadow = true;
 
 for (var i = 0; i < ground.geometry.vertices.length; i++){
     var v = ground.geometry.vertices[i];
-    v.y = getYPosition(v.x, v.z);
+    v.y = 0;
 }
 ground.geometry.computeVertexNormals();
 scene.add(ground);
@@ -89,11 +127,7 @@ base_geometry.translate(0,h_/2,0);
 var base_material = new THREE.MeshPhongMaterial({color: 0xff0000, side: THREE.DoubleSide});
 var base_blade = new THREE.Mesh(base_geometry, base_material);
 
-//From:
-//https://github.com/mrdoob/three.js/blob/master/examples/webgl_buffergeometry_instancing_dynamic.html
 var instanced_geometry = new THREE.InstancedBufferGeometry();
-
-//************** Attributes **************
 instanced_geometry.index = base_geometry.index;
 instanced_geometry.attributes.position = base_geometry.attributes.position;
 instanced_geometry.attributes.uv = base_geometry.attributes.uv;
@@ -119,7 +153,7 @@ for (var i = 0; i < instances; i++){
     //Offset of the roots
     x = Math.random() * width - width/2;
     z = Math.random() * width - width/2;
-    y = getYPosition(x, z);
+    y = 0;
     offsets.push( x, y, z);
 
     //Define random growth directions
@@ -182,9 +216,6 @@ instanced_geometry.addAttribute( 'halfRootAngleSin', halfRootAngleSinAttribute);
 instanced_geometry.addAttribute( 'halfRootAngleCos', halfRootAngleCosAttribute);
 
 //Get alpha map and blade texture
-//These have been taken from "Realistic real-time grass rendering" by Eddie Lee, 2010
-var loader = new THREE.TextureLoader();
-loader.crossOrigin = '';
 var texture =  loader.load( './materials/blade_diffuse.jpg' );
 var alphaMap =  loader.load( './materials/blade_alpha.jpg' );
 
@@ -195,13 +226,58 @@ var material = new THREE.RawShaderMaterial( {
         alphaMap: { value: alphaMap},
         time: {type: 'float', value: 0}
     },
+    // lights: true,
     vertexShader: document.getElementById( 'vertex-shader' ).textContent,
     fragmentShader: document.getElementById( 'fragment-shader' ).textContent,
     side: THREE.DoubleSide
 } );
 
 var mesh = new THREE.Mesh( instanced_geometry, material );
+// mesh.castShadow = true;
+// mesh.receiveShadow = true;
 scene.add(mesh);
+
+// add shadows to grass blades
+mesh.customDepthMaterial = new THREE.MeshDepthMaterial({
+    depthPacking: THREE.RGBADepthPacking,
+    alphaTest: 0.5
+});
+mesh.customDepthMaterial.onBeforeCompile = shader => {
+    // app specific instancing shader code
+    shader.vertexShader =
+        `#define DEPTH_PACKING 3201
+            attribute vec3 offset;
+            attribute vec4 orientation;
+
+            vec3 applyQuaternionToVector( vec4 q, vec3 v ){
+               return v + 2.0 * cross( q.xyz, cross( q.xyz, v ) + q.w * v );
+            }
+` + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace(
+        "#include <project_vertex>",
+        `
+            vec3 vPosition = applyQuaternionToVector( orientation, transformed );
+
+            vec4 mvPosition = modelViewMatrix * vec4( vPosition, 1.0 );
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + vPosition, 1.0 );`
+    );
+
+    shader.fragmentShader =
+        "#define DEPTH_PACKING 3201" + "\n" + shader.fragmentShader;
+};
+
+mesh.castShadow = true;
+mesh.receiveShadow = true;
+
+// for debug
+var sphereGeometry = new THREE.SphereBufferGeometry(  1, 32, 32);
+var sphereMaterial = new THREE.MeshStandardMaterial( { color: 0xff0000 } );
+var sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+sphere.castShadow = true; //default is false
+sphere.receiveShadow = true; //default
+scene.add( sphere );
+sphere.position.set(0, 3, 0);
+
 
 //Show base geometry
 // scene.add(base_blade);
