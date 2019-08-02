@@ -93,6 +93,15 @@ dirLight.shadow.Darkness = 0.35;
 // sky.material.side = THREE.BackSide;
 // scene.add(sky);
 
+var cubeTextureLoader = new THREE.CubeTextureLoader();
+cubeTextureLoader.setPath( './materials//' );
+var cubeTexture = cubeTextureLoader.load( [
+    'px.jpg', 'nx.jpg',
+    'py.jpg', 'ny.jpg',
+    'pz.jpg', 'nz.jpg',
+] );
+scene.background = cubeTexture;
+
 
 //OrbitControls.js for camera manipulation
 var controls = new OrbitControls(camera, renderer.domElement);
@@ -109,7 +118,7 @@ function multiplyQuaternions(q1, q2){
 }
 
 //The ground
-var ground_geometry = new THREE.PlaneGeometry(100, 100, 32, 32);
+var ground_geometry = new THREE.PlaneGeometry(1000, 1000, 32, 32);
 ground_geometry.lookAt(new THREE.Vector3(0,1,0));
 ground_geometry.verticesNeedUpdate = true;
 var loader = new THREE.TextureLoader();
@@ -278,19 +287,74 @@ mesh.castShadow = true;
 mesh.receiveShadow = true;
 
 // for debug
-var sphereGeometry = new THREE.SphereBufferGeometry(  1, 32, 32);
-var sphereMaterial = new THREE.MeshStandardMaterial( { color: 0xff0000 } );
-var sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
-sphere.castShadow = true; //default is false
-sphere.receiveShadow = true; //default
-scene.add( sphere );
-sphere.position.set(0, 3, 0);
+// var sphereGeometry = new THREE.SphereBufferGeometry(  1, 32, 32);
+// var sphereMaterial = new THREE.MeshStandardMaterial( { color: 0xff0000 } );
+// var sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+// sphere.castShadow = true; //default is false
+// sphere.receiveShadow = true; //default
+// scene.add( sphere );
+// sphere.position.set(0, 3, 0);
 
 // add sun to the scene
 var sunGeometry = new THREE.SphereBufferGeometry(  2, 32, 32);
 var sunMaterial = new THREE.MeshStandardMaterial( { color: 0xFDB813 } );
 var sun = new THREE.Mesh( sunGeometry, sunMaterial );
 scene.add( sun );
+
+
+// add tree to the scene
+var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+
+var leaveDarkMaterial = new THREE.MeshLambertMaterial( { color: 0x91E56E } );
+var leaveLightMaterial = new THREE.MeshLambertMaterial( { color: 0xA2FF7A } );
+var leaveDarkDarkMaterial = new THREE.MeshLambertMaterial( { color: 0x71B356 } );
+var stemMaterial = new THREE.MeshLambertMaterial( { color: 0x7D5A4F } );
+
+var tree_ground_offset = 1;
+
+var stem = new THREE.Mesh( geometry, stemMaterial );
+stem.castShadow = true;
+stem.position.set( 0, 0 + tree_ground_offset, 0 );
+stem.scale.set( 0.3, 2, 0.3 );
+
+var squareLeave01 = new THREE.Mesh( geometry, leaveDarkMaterial );
+squareLeave01.castShadow = true;
+squareLeave01.position.set( 0.5, 1.6 + tree_ground_offset, 0.5 );
+squareLeave01.scale.set( 0.8, 0.8, 0.8 );
+
+var squareLeave02 = new THREE.Mesh( geometry, leaveDarkMaterial );
+squareLeave02.castShadow = true;
+squareLeave02.position.set( -0.4, 1.3 + tree_ground_offset, -0.4 );
+squareLeave02.scale.set( 0.7, 0.7, 0.7 );
+
+var squareLeave03 = new THREE.Mesh( geometry, leaveDarkMaterial );
+squareLeave03.castShadow = true;
+squareLeave03.position.set( 0.4, 1.7 + tree_ground_offset, -0.5 );
+squareLeave03.scale.set( 0.7, 0.7, 0.7 );
+
+var leaveDark = new THREE.Mesh( geometry, leaveDarkMaterial );
+leaveDark.castShadow = true;
+leaveDark.position.set( 0, 1.2 + tree_ground_offset, 0 );
+leaveDark.scale.set( 1, 2, 1 );
+
+var leaveLight = new THREE.Mesh( geometry, leaveLightMaterial );
+leaveLight.castShadow = true;
+leaveLight.position.set( 0, 1.2 + tree_ground_offset, 0 );
+leaveLight.scale.set( 1.1, 0.5, 1.1 );
+
+var tree = new THREE.Group();
+tree.add( leaveDark );
+tree.add( leaveLight );
+tree.add( squareLeave01 );
+tree.add( squareLeave02 );
+tree.add( squareLeave03 );
+tree.add( ground );
+tree.add( stem );
+
+tree.castShadow = true;
+tree.scale.set(3, 3, 3);
+
+scene.add( tree );
 
 
 //Show base geometry
@@ -307,7 +371,7 @@ function draw(){
     }
     dirLight.position.x = 50 * Math.cos(time * 0.5);
     dirLight.position.y = 50 * Math.sin(time * 0.5);
-    sun.position.set(50 * Math.cos(time * 0.5), 50 * Math.sin(time * 0.5), 50);
+    sun.position.set(500 * Math.cos(time * 0.5), 500 * Math.sin(time * 0.5), 500);
     requestAnimationFrame(draw);
 }
 
