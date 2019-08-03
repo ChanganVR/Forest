@@ -9,13 +9,13 @@ var w_ = 0.12;
 var h_ = 1;
 
 //Patch side length
-var width = 100;
+var width = 1000;
 
 //Number of blades
 var num_instances = 50000;
-var num_tree = 15;
+var num_tree = 150;
 
-//Camera rotate
+//Camera rotat
 var rotate = true;
 
 //Initialise three.js
@@ -341,7 +341,7 @@ function draw_tree(x, z) {
 }
 
 for (var i=0; i <num_tree;i++){
-    draw_tree((Math.random()-0.5) * width/2, (Math.random()-0.5) * width/2);
+    draw_tree((Math.random()-0.5) * 300, (Math.random()-0.5) * 300);
 }
 
 
@@ -381,7 +381,7 @@ var time = 0;
 function draw(){
     time += 1/100;
     material.uniforms.time.value = time;
-    instanced_geometry.maxInstancedCount = Math.round(time * 10) % num_instances;
+    // instanced_geometry.maxInstancedCount = Math.round(time * 10) % num_instances;
 
     renderer.render(scene, camera);
     if(rotate){

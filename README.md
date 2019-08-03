@@ -36,7 +36,3 @@ http://localhost:8000/forest.html
 * Natural lighting: https://stackoverflow.com/questions/15478093/realistic-lighting-sunlight-with-three-js
 * Soil texture: https://www.textures.com/
 
-
-
-
-
