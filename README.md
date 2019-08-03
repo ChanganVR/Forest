@@ -2,6 +2,18 @@
 In this project, I built a forest rendering scene based on three.js. This rendered forest contains threes, grass, soil, and sun.
 Also you can use the mouse to zoom in or out to see more details.
 
+## Usage
+To run this code locally, a local server is needed. (https://threejs.org/docs/#manual/en/introduction/How-to-run-things-locally)
+
+There are multiple ways to open a server, the easiest way is to run the following command under this directory 
+```
+python -m SimpleHTTPServer
+```
+and open the following link in the web browser
+```
+http://localhost:8000/forest.html
+```
+
 ## Features
 * Rendered trees
 * Grass growing out of ground gradually
@@ -23,6 +35,7 @@ Also you can use the mouse to zoom in or out to see more details.
 * Shadow modeling for instances: https://discourse.threejs.org/t/shadow-for-instances/7947
 * Natural lighting: https://stackoverflow.com/questions/15478093/realistic-lighting-sunlight-with-three-js
 * Soil texture: https://www.textures.com/
+
 
 
 
