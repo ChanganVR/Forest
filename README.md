@@ -1,11 +1,9 @@
+# Forests (CMPT 361 Assignment 3 )
+
 # Features
-* Grass blowed by wind
+* Rendered trees
+* Grass growing out of ground gradually
 * Natural lighting and shadows
-* Animating the moving sunlight
+* Simulating Sun rising and falling
 * Ground soil texture
 * Skydome
-* Simulating Sun rising and falling
-
-
-## TODO
-* 

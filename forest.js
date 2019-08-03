@@ -9,10 +9,11 @@ var w_ = 0.12;
 var h_ = 1;
 
 //Patch side length
-var width = 30;
+var width = 100;
 
 //Number of blades
-var instances = 500;
+var num_instances = 50000;
+var num_tree = 15;
 
 //Camera rotate
 var rotate = true;
@@ -76,25 +77,8 @@ dirLight.shadow.CameraFar = 3500;
 dirLight.shadow.Bias = -0.0001;
 dirLight.shadow.Darkness = 0.35;
 
-
-// skype dome
-// var skyGeo = new THREE.SphereGeometry(10000, 25, 25);
-// var loader  = new THREE.TextureLoader(),
-//     texture = loader.load( "materials/sky.png" );
-// // texture.wrapS = THREE.RepeatWrapping;
-// // texture.wrapT = THREE.RepeatWrapping;
-// // texture.repeat.x = 3;
-// // texture.repeat.y = 3;
-// var material = new THREE.MeshPhongMaterial({
-//     map: texture,
-// });
-//
-// var sky = new THREE.Mesh(skyGeo, material);
-// sky.material.side = THREE.BackSide;
-// scene.add(sky);
-
 var cubeTextureLoader = new THREE.CubeTextureLoader();
-cubeTextureLoader.setPath( './materials//' );
+cubeTextureLoader.setPath( './materials/' );
 var cubeTexture = cubeTextureLoader.load( [
     'px.jpg', 'nx.jpg',
     'py.jpg', 'ny.jpg',
@@ -126,8 +110,8 @@ loader.crossOrigin = '';
 var texture = loader.load( "./materials/soil.jpg" );
 texture.wrapS = THREE.RepeatWrapping;
 texture.wrapT = THREE.RepeatWrapping;
-texture.repeat.x = 3;
-texture.repeat.y = 3;
+texture.repeat.x = 30;
+texture.repeat.y = 30;
 var ground_material = new THREE.MeshLambertMaterial({ map : texture });
 var ground = new THREE.Mesh(ground_geometry, ground_material);
 ground.receiveShadow = true;
@@ -167,7 +151,7 @@ var min = -0.25;
 var max =  0.25;
 
 //For each instance of the grass blade
-for (var i = 0; i < instances; i++){
+for (var i = 0; i < num_instances; i++){
     //Offset of the roots
     x = Math.random() * width - width/2;
     z = Math.random() * width - width/2;
@@ -214,7 +198,7 @@ for (var i = 0; i < instances; i++){
     orientations.push(quaternion_0.x, quaternion_0.y, quaternion_0.z, quaternion_0.w);
 
     //Define variety in height
-    if(i < instances/3){
+    if(i < num_instances/3){
         stretches.push(Math.random() * 1.8);
     }else{
         stretches.push(Math.random());
@@ -249,17 +233,17 @@ var material = new THREE.RawShaderMaterial( {
     side: THREE.DoubleSide
 } );
 
-var mesh = new THREE.Mesh( instanced_geometry, material );
+var forest = new THREE.Mesh( instanced_geometry, material );
 // mesh.castShadow = true;
 // mesh.receiveShadow = true;
-scene.add(mesh);
+scene.add(forest);
 
 // add shadows to grass blades
-mesh.customDepthMaterial = new THREE.MeshDepthMaterial({
+forest.customDepthMaterial = new THREE.MeshDepthMaterial({
     depthPacking: THREE.RGBADepthPacking,
     alphaTest: 0.5
 });
-mesh.customDepthMaterial.onBeforeCompile = shader => {
+forest.customDepthMaterial.onBeforeCompile = shader => {
     // app specific instancing shader code
     shader.vertexShader =
         `#define DEPTH_PACKING 3201
@@ -283,8 +267,8 @@ mesh.customDepthMaterial.onBeforeCompile = shader => {
         "#define DEPTH_PACKING 3201" + "\n" + shader.fragmentShader;
 };
 
-mesh.castShadow = true;
-mesh.receiveShadow = true;
+forest.castShadow = true;
+forest.receiveShadow = true;
 
 // for debug
 // var sphereGeometry = new THREE.SphereBufferGeometry(  1, 32, 32);
@@ -302,59 +286,91 @@ var sun = new THREE.Mesh( sunGeometry, sunMaterial );
 scene.add( sun );
 
 
+function draw_tree(x, z) {
 // add tree to the scene
-var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    var geometry = new THREE.BoxGeometry(1, 1, 1);
 
-var leaveDarkMaterial = new THREE.MeshLambertMaterial( { color: 0x91E56E } );
-var leaveLightMaterial = new THREE.MeshLambertMaterial( { color: 0xA2FF7A } );
-var leaveDarkDarkMaterial = new THREE.MeshLambertMaterial( { color: 0x71B356 } );
-var stemMaterial = new THREE.MeshLambertMaterial( { color: 0x7D5A4F } );
+    var leaveDarkMaterial = new THREE.MeshLambertMaterial({color: 0x91E56E});
+    var leaveLightMaterial = new THREE.MeshLambertMaterial({color: 0xA2FF7A});
+    var leaveDarkDarkMaterial = new THREE.MeshLambertMaterial({color: 0x71B356});
+    var stemMaterial = new THREE.MeshLambertMaterial({color: 0x7D5A4F});
 
-var tree_ground_offset = 1;
+    var tree_ground_offset = 1;
 
-var stem = new THREE.Mesh( geometry, stemMaterial );
-stem.castShadow = true;
-stem.position.set( 0, 0 + tree_ground_offset, 0 );
-stem.scale.set( 0.3, 2, 0.3 );
+    var stem = new THREE.Mesh(geometry, stemMaterial);
+    stem.castShadow = true;
+    stem.position.set(x, tree_ground_offset, z);
+    stem.scale.set(0.3, 2, 0.3);
 
-var squareLeave01 = new THREE.Mesh( geometry, leaveDarkMaterial );
-squareLeave01.castShadow = true;
-squareLeave01.position.set( 0.5, 1.6 + tree_ground_offset, 0.5 );
-squareLeave01.scale.set( 0.8, 0.8, 0.8 );
+    var squareLeave01 = new THREE.Mesh(geometry, leaveDarkMaterial);
+    squareLeave01.castShadow = true;
+    squareLeave01.position.set(x + 0.5, 1.6 + tree_ground_offset, z+0.5);
+    squareLeave01.scale.set(0.8, 0.8, 0.8);
 
-var squareLeave02 = new THREE.Mesh( geometry, leaveDarkMaterial );
-squareLeave02.castShadow = true;
-squareLeave02.position.set( -0.4, 1.3 + tree_ground_offset, -0.4 );
-squareLeave02.scale.set( 0.7, 0.7, 0.7 );
+    var squareLeave02 = new THREE.Mesh(geometry, leaveDarkMaterial);
+    squareLeave02.castShadow = true;
+    squareLeave02.position.set(x - 0.4, 1.3 + tree_ground_offset, z-0.4);
+    squareLeave02.scale.set(0.7, 0.7, 0.7);
 
-var squareLeave03 = new THREE.Mesh( geometry, leaveDarkMaterial );
-squareLeave03.castShadow = true;
-squareLeave03.position.set( 0.4, 1.7 + tree_ground_offset, -0.5 );
-squareLeave03.scale.set( 0.7, 0.7, 0.7 );
+    var squareLeave03 = new THREE.Mesh(geometry, leaveDarkMaterial);
+    squareLeave03.castShadow = true;
+    squareLeave03.position.set(x + 0.4, 1.7 + tree_ground_offset, z-0.5);
+    squareLeave03.scale.set(0.7, 0.7, 0.7);
 
-var leaveDark = new THREE.Mesh( geometry, leaveDarkMaterial );
-leaveDark.castShadow = true;
-leaveDark.position.set( 0, 1.2 + tree_ground_offset, 0 );
-leaveDark.scale.set( 1, 2, 1 );
+    var leaveDark = new THREE.Mesh(geometry, leaveDarkMaterial);
+    leaveDark.castShadow = true;
+    leaveDark.position.set(x, 1.2 + tree_ground_offset, z);
+    leaveDark.scale.set(1, 2, 1);
 
-var leaveLight = new THREE.Mesh( geometry, leaveLightMaterial );
-leaveLight.castShadow = true;
-leaveLight.position.set( 0, 1.2 + tree_ground_offset, 0 );
-leaveLight.scale.set( 1.1, 0.5, 1.1 );
+    var leaveLight = new THREE.Mesh(geometry, leaveLightMaterial);
+    leaveLight.castShadow = true;
+    leaveLight.position.set(x+0, 1.2 + tree_ground_offset, z);
+    leaveLight.scale.set(1.1, 0.5, 1.1);
 
-var tree = new THREE.Group();
-tree.add( leaveDark );
-tree.add( leaveLight );
-tree.add( squareLeave01 );
-tree.add( squareLeave02 );
-tree.add( squareLeave03 );
-tree.add( ground );
-tree.add( stem );
+    var tree = new THREE.Group();
+    tree.add(leaveDark);
+    tree.add(leaveLight);
+    tree.add(squareLeave01);
+    tree.add(squareLeave02);
+    tree.add(squareLeave03);
+    tree.add(ground);
+    tree.add(stem);
+    tree.scale.set(3, 3, 3);
 
-tree.castShadow = true;
-tree.scale.set(3, 3, 3);
+    scene.add(tree);
+}
 
-scene.add( tree );
+for (var i=0; i <num_tree;i++){
+    draw_tree((Math.random()-0.5) * width/2, (Math.random()-0.5) * width/2);
+}
+
+
+// var loader = new THREE.OBJLoader();
+//
+// // load a resource
+// loader.load(
+//     // resource URL
+//     'materials/tree.obj',
+//     // called when resource is loaded
+//     function ( object ) {
+//
+//         scene.add( object );
+//
+//     },
+//     // called when loading is in progresses
+//     function ( xhr ) {
+//
+//         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+//
+//     },
+//     // called when loading has errors
+//     function ( error ) {
+//
+//         console.log( 'An error happened' );
+//
+//     }
+// );
+
 
 
 //Show base geometry
@@ -365,6 +381,8 @@ var time = 0;
 function draw(){
     time += 1/100;
     material.uniforms.time.value = time;
+    instanced_geometry.maxInstancedCount = Math.round(time * 10) % num_instances;
+
     renderer.render(scene, camera);
     if(rotate){
         controls.update();
