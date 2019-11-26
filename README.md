@@ -1,6 +1,6 @@
 # Forests (CMPT 361 Assignment 3 Problem 2 )
-In this project, I built a forest rendering scene based on three.js. This rendered forest contains threes, grass, soil, and sun.
-Also you can use the mouse to zoom in or out to see more details.
+
+This project implements a scene renderer based on three.js. The available options for rendering include trees, grass, soil and sun. Additional features include perspective changing, allowing users to view the rendered scene from different perspectives and zoom in/out for closer views.
 
 ## Usage
 To run this code locally, a local server is needed. (https://threejs.org/docs/#manual/en/introduction/How-to-run-things-locally)
